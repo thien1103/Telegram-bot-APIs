@@ -201,9 +201,7 @@ bot.hears("/login", (ctx) => {
         [
           {
             text: "Login",
-            login_url: {
-              url: `https://server-file-for-telegram-login.onrender.com/login`,
-            },
+            callback_data: "login",
           },
         ],
       ],
@@ -213,15 +211,32 @@ bot.hears("/login", (ctx) => {
   console.log("Bot replied to /login");
 });
 
-bot.hears("/start", (ctx) => {
-  console.log("Bot heard /start");
-  ctx.reply("Click /login or type it into the chat to begin login!");
-  console.log("Bot replied to /start");
+bot.on("callback_query", (ctx) => {
+  console.log("Callback query received:", ctx.callbackQuery.data);
+  if (ctx.callbackQuery.data === "login") {
+    ctx.answerCbQuery(); // Acknowledge the callback query
+    ctx.reply("Redirecting you to the login page...");
+    const loginUrl = `${ctx.message.chat.id}/login`;
+    ctx.telegram.sendMessage(
+      ctx.message.chat.id,
+      `Go to this link to login: ${loginUrl}`
+    );
+    ctx.scene.enter("loginScene");
+  }
 });
 
-app.get("/login", (req, res) => {
-  // you'll get your user's data in req.query
+// Create a new scene for the login process
+const loginScene = new Telegraf.BaseScene("loginScene");
+loginScene.enter((ctx) => {
+  const loginUrl = `https://server-file-for-telegram-login.onrender.com/login?chat_id=${ctx.message.chat.id}`;
+  ctx.reply(`Please click this link to login: ${loginUrl}`);
+});
+bot.use(loginScene);
+
+app.get("/:chatId/login", (req, res) => {
+  // You'll get your user's data in req.query
   console.log(req.query);
+  res.send("Login successful!");
 });
 
 bot.use(Telegraf.log());
@@ -250,4 +265,3 @@ function checkSignature({ hash, ...userData }) {
 
   return hmac === hash;
 }
-
