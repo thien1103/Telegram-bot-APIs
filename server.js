@@ -187,25 +187,16 @@
 
 const express = require("express");
 const crypto = require("crypto");
-const session = require("express-session");
-const app = express();
-
 const { Telegraf } = require("telegraf");
+
+const app = express();
 const bot = new Telegraf("7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w");
 
-// Use sessions to manage user states
-app.use(
-  session({
-    secret: "7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w", // Replace with a strong secret key
-    resave: false,
-    saveUninitialized: true,
-  })
-);
-
 bot.hears("/login", (ctx) => {
+  console.log("Bot heard /login");
   let optionalParams = {
     parse_mode: "Markdown",
-    reply_markup: JSON.stringify({
+    reply_markup: {
       inline_keyboard: [
         [
           {
@@ -216,31 +207,34 @@ bot.hears("/login", (ctx) => {
           },
         ],
       ],
-    }),
+    },
   };
   ctx.reply("Click this button to login!", optionalParams);
+  console.log("Bot replied to /login");
 });
 
 bot.hears("/start", (ctx) => {
+  console.log("Bot heard /start");
   ctx.reply("Click /login or type it into the chat to begin login!");
+  console.log("Bot replied to /start");
 });
 
 app.get("/login", (req, res) => {
+  console.log("Logging in");
   if (checkSignature(req.query)) {
     // Data is authenticated
-    req.session.user = req.query;
-    res("Logged in");
+    res.send(`Welcome, ${req.query.first_name}! You have successfully logged in.`);
   } else {
     // Data is not authenticated
     res.status(403).send("Authentication failed");
   }
 });
 
-bot.launch();
 bot.use(Telegraf.log());
 
 app.listen(9999, () => {
   console.log("Server started on port 9999");
+  bot.launch();
 });
 
 // Function to check the Telegram login signature
@@ -262,3 +256,4 @@ function checkSignature({ hash, ...userData }) {
 
   return hmac === hash;
 }
+
