@@ -186,69 +186,79 @@
 // // });
 
 const express = require("express");
-const bodyParser = require("body-parser");
-const { Telegraf, Markup } = require("telegraf");
 const crypto = require("crypto");
-const path = require("path");
-
+const session = require("express-session");
 const app = express();
+
+const { Telegraf } = require("telegraf");
 const bot = new Telegraf("7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w");
-const SECRET_KEY = "7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w"; // Use the token you got from BotFather
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Use sessions to manage user states
+app.use(
+  session({
+    secret: "7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w", // Replace with a strong secret key
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 
-// Serve static files from the "public" directory
-app.use(express.static("client"));
-
-// Endpoint to serve the authentication HTML page
-app.get("/auth", (req, res) => {
-  res.sendFile("index.html");
+bot.hears("/login", (ctx) => {
+  let optionalParams = {
+    parse_mode: "Markdown",
+    reply_markup: JSON.stringify({
+      inline_keyboard: [
+        [
+          {
+            text: "Login",
+            login_url: {
+              url: `${host}/login`,
+            },
+          },
+        ],
+      ],
+    }),
+  };
+  ctx.reply("Click this button to login!", optionalParams);
 });
 
-// Endpoint to handle the Telegram authentication redirect
-app.get("/auth/redirect", (req, res) => {
-  const { id, first_name, last_name, username, photo_url, auth_date, hash } =
-    req.query;
+bot.hears("/start", (ctx) => {
+  ctx.reply("Click /login or type it into the chat to begin login!");
+});
 
-  // Verify the integrity of the data
-  const dataCheckString = `id=${id}&first_name=${first_name}&last_name=${last_name}&username=${username}&photo_url=${photo_url}&auth_date=${auth_date}`;
-  const expectedHash = crypto
-    .createHmac("sha256", SECRET_KEY)
-    .update(dataCheckString)
-    .digest("hex");
-
-  if (hash !== expectedHash) {
-    return res.status(403).send("Invalid authentication data");
+app.get("/login", (req, res) => {
+  if (checkSignature(req.query)) {
+    // Data is authenticated
+    req.session.user = req.query;
+    res("Logged in");
+  } else {
+    // Data is not authenticated
+    res.status(403).send("Authentication failed");
   }
-
-  // At this point, you can save the user's information or perform any other necessary actions
-  console.log("User authenticated:", {
-    id,
-    first_name,
-    last_name,
-    username,
-    photo_url,
-    auth_date,
-  });
-
-  // Send a response to the client
-  res.send("Authentication successful!");
-});
-
-// Start the bot and server
-bot.start((ctx) => {
-  const token = crypto.randomBytes(16).toString("hex");
-  const authUrl = `https://some-client-file-on-render.onrender.com/auth/redirect?token=${token}&userId=${ctx.from.id}`;
-
-  ctx.reply(
-    "Welcome! Please log in using the button below:",
-    Markup.inlineKeyboard([Markup.button.url("Log in with Telegram", authUrl)])
-  );
 });
 
 bot.launch();
+bot.use(Telegraf.log());
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Server is running");
+app.listen(9999, () => {
+  console.log("Server started on port 9999");
 });
+
+// Function to check the Telegram login signature
+function checkSignature({ hash, ...userData }) {
+  const secretKey = crypto
+    .createHash("sha256")
+    .update("7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w")
+    .digest();
+
+  const dataCheckString = Object.keys(userData)
+    .sort()
+    .map((key) => `${key}=${userData[key]}`)
+    .join("\n");
+
+  const hmac = crypto
+    .createHmac("sha256", secretKey)
+    .update(dataCheckString)
+    .digest("hex");
+
+  return hmac === hash;
+}
