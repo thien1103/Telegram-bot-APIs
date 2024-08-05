@@ -202,7 +202,7 @@ bot.hears("/login", (ctx) => {
           {
             text: "Login",
             login_url: {
-              url: `${currentHost}/login`,
+              url: `https://server-file-for-telegram-login.onrender.com/login`,
             },
           },
         ],
