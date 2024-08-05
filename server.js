@@ -220,14 +220,8 @@ bot.hears("/start", (ctx) => {
 });
 
 app.get("/login", (req, res) => {
-  console.log("Logging in");
-  if (checkSignature(req.query)) {
-    // Data is authenticated
-    res.send(`Welcome, ${req.query.first_name}! You have successfully logged in.`);
-  } else {
-    // Data is not authenticated
-    res.status(403).send("Authentication failed");
-  }
+  // you'll get your user's data in req.query
+  console.log(req.query);
 });
 
 bot.use(Telegraf.log());
