@@ -202,7 +202,7 @@ bot.hears("/login", (ctx) => {
           {
             text: "Login",
             login_url: {
-              url: `${host}/login`,
+              url: `${currentHost}/login`,
             },
           },
         ],
