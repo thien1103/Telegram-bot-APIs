@@ -186,82 +186,29 @@
 // // });
 
 const express = require("express");
-const crypto = require("crypto");
-const { Telegraf } = require("telegraf");
-
 const app = express();
-const bot = new Telegraf("7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w");
+const cookieParser = require("cookie-parser");
+const { handleLogout, renderPage } = require("./login_example");
+const {
+  checkTelegramAuthorization,
+  saveTelegramUserData,
+} = require("./telegram_auth");
 
-bot.hears("/login", (ctx) => {
-  console.log("Bot heard /login");
-  let optionalParams = {
-    parse_mode: "Markdown",
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: "Login",
-            callback_data: "login",
-          },
-        ],
-      ],
-    },
-  };
-  ctx.reply("Click this button to login!", optionalParams);
-  console.log("Bot replied to /login");
-});
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-bot.on("callback_query", (ctx) => {
-  console.log("Callback query received:", ctx.callbackQuery.data);
-  if (ctx.callbackQuery.data === "login") {
-    ctx.answerCbQuery(); // Acknowledge the callback query
-    ctx.reply("Redirecting you to the login page...");
-    const loginUrl = `${ctx.message.chat.id}/login`;
-    ctx.telegram.sendMessage(
-      ctx.message.chat.id,
-      `Go to this link to login: ${loginUrl}`
-    );
-    ctx.scene.enter("loginScene");
+app.get("/login_example", renderPage);
+app.get("/check_authorization", (req, res) => {
+  try {
+    const authData = checkTelegramAuthorization(req.query);
+    saveTelegramUserData(authData, res);
+    res.redirect("/login_example");
+  } catch (err) {
+    res.status(400).send(err.message);
   }
 });
-
-// Create a new scene for the login process
-const loginScene = new Telegraf.BaseScene("loginScene");
-loginScene.enter((ctx) => {
-  const loginUrl = `https://server-file-for-telegram-login.onrender.com/login?chat_id=${ctx.message.chat.id}`;
-  ctx.reply(`Please click this link to login: ${loginUrl}`);
-});
-bot.use(loginScene);
-
-app.get("/:chatId/login", (req, res) => {
-  // You'll get your user's data in req.query
-  console.log(req.query);
-  res.send("Login successful!");
-});
-
-bot.use(Telegraf.log());
+app.get("/logout", handleLogout);
 
 app.listen(9999, () => {
-  console.log("Server started on port 9999");
-  bot.launch();
+  console.log("Server is running on port 9999");
 });
-
-// Function to check the Telegram login signature
-function checkSignature({ hash, ...userData }) {
-  const secretKey = crypto
-    .createHash("sha256")
-    .update("7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w")
-    .digest();
-
-  const dataCheckString = Object.keys(userData)
-    .sort()
-    .map((key) => `${key}=${userData[key]}`)
-    .join("\n");
-
-  const hmac = crypto
-    .createHmac("sha256", secretKey)
-    .update(dataCheckString)
-    .digest("hex");
-
-  return hmac === hash;
-}
