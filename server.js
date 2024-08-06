@@ -192,7 +192,7 @@ const { handleLogout, renderPage } = require("./login_example");
 const {
   checkTelegramAuthorization,
   saveTelegramUserData,
-} = require("./telegram_auth");
+} = require("./authorization");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

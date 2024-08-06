@@ -1,4 +1,4 @@
-const BOT_USERNAME = "XXXXXXXXXX"; // place username of your bot here
+const BOT_USERNAME = "haothien_test_payment_bot"; // place username of your bot here
 
 function getTelegramUserData(req) {
   const authDataJson = req.cookies.tg_user;
