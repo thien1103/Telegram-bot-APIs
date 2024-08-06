@@ -34,10 +34,4 @@ function saveTelegramUserData(authData) {
   // Depending on your web framework, the method to set a cookie may vary
 }
 
-try {
-  const authData = checkTelegramAuthorization(req.query);
-  saveTelegramUserData(authData);
-  res.redirect("/login_example");
-} catch (err) {
-  res.status(400).send(err.message);
-}
+
