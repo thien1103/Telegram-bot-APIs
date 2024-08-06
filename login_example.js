@@ -34,7 +34,7 @@ function renderPage(req, res) {
   } else {
     html = `
 <h1>Hello!</h1>
-<script async src="https://telegram.org/js/telegram-widget.js?2" data-telegram-login="${BOT_USERNAME}" data-size="large" data-auth-url="/check_authorization"></script>
+<script async src="https://telegram.org/js/telegram-widget.js?22" lang="en" data-telegram-login="${BOT_USERNAME}" data-size="large" data-auth-url="/check_authorization"></script>
 `;
   }
 
