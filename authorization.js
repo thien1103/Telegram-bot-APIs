@@ -34,4 +34,4 @@ function saveTelegramUserData(authData) {
   // Depending on your web framework, the method to set a cookie may vary
 }
 
-
+module.exports = {saveTelegramUserData, checkTelegramAuthorization}

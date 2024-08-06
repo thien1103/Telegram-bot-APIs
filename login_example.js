@@ -33,7 +33,7 @@ function renderPage(req, res) {
     html += '<p><a href="?logout=1">Log out</a></p>';
   } else {
     html = `
-<h1>Hello, anonymous!</h1>
+<h1>Hello!</h1>
 <script async src="https://telegram.org/js/telegram-widget.js?2" data-telegram-login="${BOT_USERNAME}" data-size="large" data-auth-url="/check_authorization"></script>
 `;
   }

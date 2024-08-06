@@ -188,12 +188,19 @@
 const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
-const { handleLogout, renderPage } = require("./login_example");
+const { handleLogout, renderPage } = require("./login_example.js");
 const {
   checkTelegramAuthorization,
   saveTelegramUserData,
 } = require("./authorization");
+const path = require("path");
 
+// Set up the view engine
+app.set("view engine", "ejs");
+// Set the views directory to the root directory
+app.set("views", path.join(__dirname, "."));
+
+// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
