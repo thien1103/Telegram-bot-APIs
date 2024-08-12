@@ -134,7 +134,7 @@ let connection = mysql.createConnection({
 exports.viewall = (req, res) => {
 
   // User the connection
-  connection.query('SELECT * FROM user WHERE id = ?', [req.params.id], (err, rows) => {
+  connection.query('SELECT * FROM user WHERE id = ?', [req.params.userId], (err, rows) => {
     if (!err) {
       res.render('view-user', { rows });
     } else {
