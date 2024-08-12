@@ -1,12 +1,13 @@
 const mysql = require('mysql2');
+require('dotenv');
 
 // Connection Pool
 let connection = mysql.createConnection({
-  host: "mysql-startkid-startkid.d.aivencloud.com",
-  port: "22394",
-  user: "avnadmin",
-  password: "AVNS_86ep1Mrtd_SBnm_AglI",
-  database: "test_telegram_api_cloud",
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_DATABASE,
 });
 
 // // View Users
