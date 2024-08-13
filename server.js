@@ -11,6 +11,10 @@ app.set("views", "./views");
 
 app.get("/user", (req, res) => {
   const token = req.query.token; // Retrieve the token directly from the query string
+   if (!token) {
+     console.error("No token provided");
+     return res.status(400).send("Token is missing");
+   }
   try {
     // Decode the JWT token
     const userData = jwt.verify(token, process.env.JWT_SECRET);
