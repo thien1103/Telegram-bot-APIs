@@ -10,9 +10,7 @@ app.set("view engine", "ejs");
 app.set("views", "./views");
 
 app.get("/user", (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const token = parsedUrl.query.token;
-
+  const token = req.query.token; // Retrieve the token directly from the query string
   try {
     // Decode the JWT token
     const userData = jwt.verify(token, process.env.JWT_SECRET);
