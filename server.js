@@ -1,54 +1,31 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
+const url = require("url");
+require("dotenv").config();
+
 const app = express();
-const cookieParser = require("cookie-parser");
-const { handleLogout, renderPage } = require("./login_example.js");
-const {
-  checkTelegramAuthorization,
-  saveTelegramUserData,
-} = require("./authorization");
-const path = require("path");
-const { Telegraf } = require("telegraf");
-const bot = new Telegraf("7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w");
 
-// Set up the view engine
+// Set up a view engine (e.g., EJS)
 app.set("view engine", "ejs");
-// Set the views directory to the root directory
-app.set("views", path.join(__dirname, "."));
+app.set("views", "./views");
 
-// Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.get("/user", (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const token = parsedUrl.query.token;
 
-bot.command("login", async (ctx) => {
-  console.log("Bot received /login command");
   try {
-    const loginUrl = `https://server-file-for-telegram-login.onrender.com/login_example`;
-    await ctx.reply("Click the button to log in:", {
-      reply_markup: {
-        inline_keyboard: [[{ text: "Login", url: loginUrl }]],
-      },
-    });
-  } catch (err) {
-    console.error("Error handling /login command:", err);
-    await ctx.reply("Sorry, there was an error processing your request.");
-  }
-  console.log("Button sent");
-});
+    // Decode the JWT token
+    const userData = jwt.verify(token, process.env.JWT_SECRET);
 
-app.get("/login_example", renderPage);
-app.get("/check_authorization", (req, res) => {
-  try {
-    const authData = checkTelegramAuthorization(req.query);
-    saveTelegramUserData(authData, res);
-    res.redirect("/login_example");
-  } catch (err) {
-    res.status(400).send(err.message);
+    // Render the user data on a view engine page
+    res.render("user", { userData });
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    res.status(400).send("Invalid token");
   }
 });
-app.get("/logout", handleLogout);
 
-bot.launch();
-
-app.listen(9999, () => {
-  console.log("Server is running on port 9999");
+const port = process.env.PORT || 9993;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
