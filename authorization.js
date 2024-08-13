@@ -1,6 +1,17 @@
 const crypto = require("crypto");
+const mysql = require("mysql2")
 
 const BOT_TOKEN = "7296914438:AAGrJ4Sisw0h6oGYx5Ez4nMjtCOYhlfoW8w"; // place bot token of your bot here
+
+
+const connection = mysql.createConnection({
+  host: "mysql-startkid-startkid.d.aivencloud.com",
+  port: "22394",
+  user: "avnadmin",
+  password: "AVNS_86ep1Mrtd_SBnm_AglI",
+  database: "test_telegram_api_cloud",
+});
+
 
 function checkTelegramAuthorization(authData) {
   const checkHash = authData.hash;
@@ -29,9 +40,25 @@ function checkTelegramAuthorization(authData) {
 }
 
 function saveTelegramUserData(authData) {
-  const authDataJson = JSON.stringify(authData);
-  // Set a cookie named 'tg_user' with the authDataJson value
-  // Depending on your web framework, the method to set a cookie may vary
+  const { id, username, first_name, last_name } = authData;
+
+  const query = `
+    INSERT INTO user (id, username, first_name, last_name)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE username = ?, first_name = ?, last_name = ?
+  `;
+
+  connection.query(
+    query,
+    [id, username, first_name, last_name, username],
+    (err, results) => {
+      if (err) {
+        console.error("Error saving user data:", err);
+      } else {
+        console.log("User data saved successfully:", results);
+      }
+    }
+  );
 }
 
 module.exports = {saveTelegramUserData, checkTelegramAuthorization}
